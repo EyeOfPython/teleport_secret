@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="build-run" name="Pk Teleport">
+    <!-- Some handy shorthands -->
+    <property name="JC211" value="sdks/jc211_kit"/>
+    <property name="JC212" value="sdks/jc212_kit"/>
+    <property name="JC221" value="sdks/jc221_kit"/>
+    <property name="JC222" value="sdks/jc222_kit"/>
+    <property name="JC303" value="sdks/jc303_kit"/>
+    <property name="JC304" value="sdks/jc304_kit"/>
+    <property name="JC305_1" value="sdks/jc305u1_kit"/>
+    <property name="JC305_2" value="sdks/jc305u2_kit"/>
+    <property name="JC305" value="sdks/jc305u3_kit"/>
+
+    <property name="aid" value="0102030405060708"/>
+
+    <taskdef name="javacard" classname="pro.javacard.ant.JavaCard" classpath="ant-javacard.jar"/>
+
+    <path id="sim-classpath">
+        <fileset dir="." includes="jcardsim-*.jar"/>
+    </path>
+
+    <target name="compile">
+        <mkdir dir="build/classes"/>
+        <javac destdir="build/classes" classpathref="sim-classpath">
+            <src>
+                <pathelement location="src"/>
+                <pathelement location="card"/>
+            </src>
+        </javac>
+    </target>
+
+    <target name="jar" depends="compile">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/PkTeleportSim.jar" basedir="build/classes">
+            <manifest>
+                <attribute name="Main-Class" value="cash.be.pktp.sim.PkTeleportSim"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="run">
+        <java classname="cash.be.pktp.sim.PkTeleportSim" fork="true">
+            <classpath>
+                <path refid="sim-classpath"/>
+                <path location="build/jar/PkTeleportSim.jar"/>
+            </classpath>
+        </java>
+    </target>
+
+    <target name="build-run" depends="jar,run" />
+
+    <target name="build-cap">
+        <mkdir dir="build/cap"/>
+        <javacard>
+            <!-- JC 3.0.3 -->
+            <cap jckit="${JC303}" output="build/cap/PkTeleportApplet.cap" sources="card">
+                <applet class="cash.be.pktp.card.PkTeleportApplet" aid="${aid}"/>
+            </cap>
+        </javacard>
+    </target>
+
+    <target name="install-cap">
+        <java jar="gp.jar" fork="true">
+            <arg line="--install" />
+            <arg line="build/cap/PkTeleportApplet.cap" />
+        </java>
+    </target>
+
+    <target name="uninstall-cap">
+        <java jar="gp.jar" fork="true">
+            <arg line="--uninstall" />
+            <arg line="build/cap/PkTeleportApplet.cap" />
+        </java>
+    </target>
+
+    <target name="update-cap" depends="build-cap,uninstall-cap,install-cap" />
+</project>
