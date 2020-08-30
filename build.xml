@@ -33,13 +33,13 @@
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/PkTeleportSim.jar" basedir="build/classes">
             <manifest>
-                <attribute name="Main-Class" value="cash.be.pktp.sim.PkTeleportSim"/>
+                <attribute name="Main-Class" value="cash.be.teleport_secret.sim.TeleportSecretSimulator"/>
             </manifest>
         </jar>
     </target>
 
     <target name="run">
-        <java classname="cash.be.pktp.sim.PkTeleportSim" fork="true">
+        <java classname="cash.be.teleport_secret.sim.TeleportSecretSimulator" fork="true">
             <classpath>
                 <path refid="sim-classpath"/>
                 <path location="build/jar/PkTeleportSim.jar"/>
@@ -54,7 +54,7 @@
         <javacard>
             <!-- JC 3.0.3 -->
             <cap jckit="${JC303}" output="build/cap/PkTeleportApplet.cap" sources="card">
-                <applet class="cash.be.pktp.card.PkTeleportApplet" aid="${aid}"/>
+                <applet class="cash.be.teleport_secret.card.TeleportSecretApplet" aid="${aid}"/>
             </cap>
         </javacard>
     </target>

@@ -1,4 +1,4 @@
-package cash.be.pktp.sim;
+package cash.be.teleport_secret;
 
 public class Utils {
     private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();

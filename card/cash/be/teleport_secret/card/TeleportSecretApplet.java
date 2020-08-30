@@ -1,20 +1,20 @@
-package cash.be.pktp.card;
+package cash.be.teleport_secret.card;
 
 import javacard.framework.*;
 
-public class PkTeleportApplet extends Applet {
+public class TeleportSecretApplet extends Applet {
     public static final byte INS_SAY_HELLO = 1;
     private static byte[] HELLO_MSG = new byte[]{72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 32, 33};
     private final byte[] mem;
     private static final short LENGTH_ECHO_BYTES = 256;
 
-    protected PkTeleportApplet(byte[] bArray, short bOffset, byte bLength) {
+    protected TeleportSecretApplet(byte[] bArray, short bOffset, byte bLength) {
         this.mem = JCSystem.makeTransientByteArray(LENGTH_ECHO_BYTES, JCSystem.CLEAR_ON_DESELECT);
         this.register();
     }
 
     public static void install(byte[] bArray, short bOffset, byte bLength) throws ISOException {
-        new PkTeleportApplet(bArray, bOffset, bLength);
+        new TeleportSecretApplet(bArray, bOffset, bLength);
     }
 
     public void process(APDU apdu) {

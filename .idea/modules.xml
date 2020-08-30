@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/pktp.iml" filepath="$PROJECT_DIR$/pktp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/teleport-secret.iml" filepath="$PROJECT_DIR$/teleport-secret.iml" />
     </modules>
   </component>
 </project>
