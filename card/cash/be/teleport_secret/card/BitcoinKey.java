@@ -5,12 +5,14 @@ import javacard.framework.Util;
 import javacard.security.*;
 
 public class BitcoinKey {
-    private ECPublicKey publicKey;
     private ECPrivateKey privateKey = null;
     private byte[] publicKeyCompressed = new byte[PK_COMPRESSED_SIZE];
+    private KeyAgreement agreement = null;
+    private ECPublicKey publicKey;
     private Signature signature;
     private byte mode;
 
+    public static final short SK_SIZE = 32;
     public static final short PK_COMPRESSED_SIZE = 33;
     public static final short PK_UNCOMPRESSED_SIZE = 65;
     public static final short MAX_SIG_SIZE = 73;
@@ -50,7 +52,19 @@ public class BitcoinKey {
         this.mode = BITCOIN_KEY_MODE_VERIFY;
     }
 
+    public void setPrivateKey(byte[] sk, short offset) {
+        if (this.privateKey == null) {
+            this.privateKey = (ECPrivateKey) buildKey(KeyBuilder.TYPE_EC_FP_PRIVATE);
+        }
+        this.privateKey.setS(sk, offset, SK_SIZE);
+        this.signature.init(privateKey, Signature.MODE_SIGN);
+        this.mode = BITCOIN_KEY_MODE_SIGN;
+    }
+
     public void reset(byte[] tmp) {
+        Util.arrayFillNonAtomic(tmp, (short) 0, PK_UNCOMPRESSED_SIZE, (byte) 0);
+        this.privateKey.setS(tmp, (short) 0, SK_SIZE);
+        this.publicKey.setW(tmp, (short) 0, PK_UNCOMPRESSED_SIZE);
         this.mode = BITCOIN_KEY_UNINITIALIZED;
     }
 
@@ -69,6 +83,25 @@ public class BitcoinKey {
     public short getPublicKeyCompressed(byte[] pk, short pkOffset) {
         Util.arrayCopy(publicKeyCompressed, (short)0, pk, pkOffset, PK_COMPRESSED_SIZE);
         return (short)(pkOffset + PK_COMPRESSED_SIZE);
+    }
+
+    public short getPublicKeyUncompressed(byte[] pk, short pkOffset) {
+        return this.publicKey.getW(pk, pkOffset);
+    }
+
+    public short getPrivateKey(byte[] sk, short skOffset) {
+        return this.privateKey.getS(sk, skOffset);
+    }
+
+    public void initKeyAgreement() {
+        if (agreement == null) {
+            agreement = KeyAgreement.getInstance(KeyAgreement.ALG_EC_SVDP_DH_PLAIN, false);
+        }
+        agreement.init(this.privateKey);
+    }
+
+    public short shareSecret(byte[] pk, short pkOffset, short pkLength, byte[] secret, short secretOffset) {
+        return agreement.generateSecret(pk, pkOffset, pkLength, secret, secretOffset);
     }
 
     public short sign(byte[] msg, short msgOffset, short msgLength, byte[] result, short resultOffset) {
