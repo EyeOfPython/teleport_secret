@@ -6,10 +6,13 @@ public class TeleportSecretApplet extends Applet {
     public static final byte INS_SAY_HELLO = 1;
     private static byte[] HELLO_MSG = new byte[]{72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 32, 33};
     private final byte[] mem;
-    private static final short LENGTH_ECHO_BYTES = 256;
+    private final byte[] response;
+    private static final short LENGTH_MEM = 256;
+    private static final short LENGTH_RESPONSE = 256;
 
     protected TeleportSecretApplet(byte[] bArray, short bOffset, byte bLength) {
-        this.mem = JCSystem.makeTransientByteArray(LENGTH_ECHO_BYTES, JCSystem.CLEAR_ON_DESELECT);
+        this.mem = JCSystem.makeTransientByteArray(LENGTH_MEM, JCSystem.CLEAR_ON_DESELECT);
+        this.response = JCSystem.makeTransientByteArray(LENGTH_RESPONSE, JCSystem.CLEAR_ON_DESELECT);
         this.register();
     }
 
@@ -22,18 +25,20 @@ public class TeleportSecretApplet extends Applet {
             byte[] buffer = apdu.getBuffer();
             switch (buffer[ISO7816.OFFSET_INS]) {
                 case INS_SAY_HELLO: {
-                    byte[] hello = this.mem;
                     short helloLength = (short) HELLO_MSG.length;
-                    Util.arrayCopyNonAtomic(HELLO_MSG, (short) 0, hello, (short) 0, helloLength);
-
-                    apdu.setOutgoing();
-                    apdu.setOutgoingLength(helloLength);
-                    apdu.sendBytesLong(hello, (short) 0, helloLength);
+                    Util.arrayCopyNonAtomic(HELLO_MSG, (short) 0, this.response, (short) 0, helloLength);
+                    sendResponse(apdu, this.response, (short) 0, helloLength);
                     return;
                 }
                 default:
-                    ISOException.throwIt((short) 27904);
+                    ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
             }
         }
+    }
+
+    private static void sendResponse(APDU apdu, byte[] array, short offset, short length) {
+        apdu.setOutgoing();
+        apdu.setOutgoingLength(length);
+        apdu.sendBytesLong(array, offset, length);
     }
 }
