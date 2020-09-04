@@ -12,9 +12,9 @@ public class SecretTeleporter {
     public void registerMerchantCard(Card merchantCard) throws ISO7816Exception {
         merchantCard.selectApplet(Nfc.AID);
         byte [] response = merchantCard.transmit(
-                new CommandAPDU(0x00, TeleportSecretApplet.INS_SAY_HELLO, 0x00, 0x00)
+                new CommandAPDU(0x00, TeleportSecretApplet.INS_GET_INTERNAL_PUBKEY, 0x00, 0x00)
         ).getData();
-        System.out.println(new String(response, Charset.defaultCharset()));
+        System.out.println("Merchant PK: " + Utils.bytesToHex(response));
     }
 
     public void moveSecretFromCard(Card customerCard) throws ISO7816Exception {
