@@ -5,8 +5,10 @@ import javacard.framework.*;
 public class TeleportSecretApplet extends Applet {
     public static final byte INS_SAY_HELLO = 0x01;
     public static final byte INS_GET_INTERNAL_PUBKEY = 0x02;
+    public static final byte INS_MOVE_SECRET = 0x03;
 
     private BitcoinKey coinSk = new BitcoinKey();
+    private BitcoinKey internalSk = new BitcoinKey();
 
     // everything that we allocate with `new` will be in NVM (EEPROM)
     private static byte[] HELLO_MSG = new byte[]{72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 32, 33};
@@ -20,6 +22,8 @@ public class TeleportSecretApplet extends Applet {
         this.mem = JCSystem.makeTransientByteArray(LENGTH_MEM, JCSystem.CLEAR_ON_DESELECT);
         this.response = JCSystem.makeTransientByteArray(LENGTH_RESPONSE, JCSystem.CLEAR_ON_DESELECT);
         this.coinSk.generate(this.mem);
+        this.internalSk.generate(this.mem);
+        this.internalSk.initKeyAgreement();
     }
 
     public static void install(byte[] bArray, short bOffset, byte bLength) throws ISOException {
@@ -38,6 +42,17 @@ public class TeleportSecretApplet extends Applet {
                 }
                 case INS_GET_INTERNAL_PUBKEY: {
                     short len = this.coinSk.getPublicKeyUncompressed(this.response, (short) 0);
+                    sendResponse(apdu, this.response, (short) 0, len);
+                    return;
+                }
+                case INS_MOVE_SECRET: {
+                    short len = this.internalSk.shareSecret(
+                            buffer,
+                            ISO7816.OFFSET_CDATA,
+                            BitcoinKey.PK_UNCOMPRESSED_SIZE,
+                            this.response,
+                            (short) 0
+                    );
                     sendResponse(apdu, this.response, (short) 0, len);
                     return;
                 }

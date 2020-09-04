@@ -9,16 +9,22 @@ import javax.smartcardio.CommandAPDU;
 import java.nio.charset.Charset;
 
 public class SecretTeleporter {
+    private byte[] merchantPk;
+
     public void registerMerchantCard(Card merchantCard) throws ISO7816Exception {
         merchantCard.selectApplet(Nfc.AID);
-        byte [] response = merchantCard.transmit(
+        merchantPk = merchantCard.transmit(
                 new CommandAPDU(0x00, TeleportSecretApplet.INS_GET_INTERNAL_PUBKEY, 0x00, 0x00)
         ).getData();
-        System.out.println("Merchant PK: " + Utils.bytesToHex(response));
+        System.out.println("Merchant PK: " + Utils.bytesToHex(merchantPk));
     }
 
     public void moveSecretFromCard(Card customerCard) throws ISO7816Exception {
-        // TODO
+        customerCard.selectApplet(Nfc.AID);
+        byte[] sharedSecret = customerCard.transmit(
+                new CommandAPDU(0x00, TeleportSecretApplet.INS_MOVE_SECRET, 0x00, 0x00, merchantPk)
+        ).getData();
+        System.out.println("Shared Secret: " + Utils.bytesToHex(sharedSecret));
     }
 
     public void redeemSecret(Card merchantCard) throws ISO7816Exception {
