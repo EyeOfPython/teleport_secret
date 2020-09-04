@@ -4,6 +4,10 @@ import javacard.framework.*;
 
 public class TeleportSecretApplet extends Applet {
     public static final byte INS_SAY_HELLO = 0x01;
+    public static final byte INS_GET_INTERNAL_PUBKEY = 0x02;
+
+    private BitcoinKey coinSk = new BitcoinKey();
+
     // everything that we allocate with `new` will be in NVM (EEPROM)
     private static byte[] HELLO_MSG = new byte[]{72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 32, 33};
     private final byte[] mem;
@@ -15,6 +19,7 @@ public class TeleportSecretApplet extends Applet {
         // everything allocated with `makeTransientByteArray` will be in RAM
         this.mem = JCSystem.makeTransientByteArray(LENGTH_MEM, JCSystem.CLEAR_ON_DESELECT);
         this.response = JCSystem.makeTransientByteArray(LENGTH_RESPONSE, JCSystem.CLEAR_ON_DESELECT);
+        this.coinSk.generate(this.mem);
     }
 
     public static void install(byte[] bArray, short bOffset, byte bLength) throws ISOException {
@@ -29,6 +34,11 @@ public class TeleportSecretApplet extends Applet {
                     short helloLength = (short) HELLO_MSG.length;
                     Util.arrayCopyNonAtomic(HELLO_MSG, (short) 0, this.response, (short) 0, helloLength);
                     sendResponse(apdu, this.response, (short) 0, helloLength);
+                    return;
+                }
+                case INS_GET_INTERNAL_PUBKEY: {
+                    short len = this.coinSk.getPublicKeyUncompressed(this.response, (short) 0);
+                    sendResponse(apdu, this.response, (short) 0, len);
                     return;
                 }
                 default:
