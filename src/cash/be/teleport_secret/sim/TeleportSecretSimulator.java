@@ -13,8 +13,7 @@ public class TeleportSecretSimulator {
         SecretTeleporter teleporter = new SecretTeleporter();
 
         try {
-            teleporter.onFirstCard(card1);
-            teleporter.onSecondCard(card2);
+            teleporter.teleport(card1, card2);
         } catch (ISO7816Exception e) {
             e.printStackTrace();
         }

@@ -3,7 +3,7 @@ package cash.be.teleport_secret.card;
 import javacard.framework.*;
 
 public class TeleportSecretApplet extends Applet {
-    public static final byte INS_SAY_HELLO = 1;
+    public static final byte INS_SAY_HELLO = 0x01;
     // everything that we allocate with `new` will be in NVM (EEPROM)
     private static byte[] HELLO_MSG = new byte[]{72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 32, 33};
     private final byte[] mem;
@@ -15,11 +15,10 @@ public class TeleportSecretApplet extends Applet {
         // everything allocated with `makeTransientByteArray` will be in RAM
         this.mem = JCSystem.makeTransientByteArray(LENGTH_MEM, JCSystem.CLEAR_ON_DESELECT);
         this.response = JCSystem.makeTransientByteArray(LENGTH_RESPONSE, JCSystem.CLEAR_ON_DESELECT);
-        this.register();
     }
 
     public static void install(byte[] bArray, short bOffset, byte bLength) throws ISOException {
-        new TeleportSecretApplet(bArray, bOffset, bLength);
+        new TeleportSecretApplet(bArray, bOffset, bLength).register();
     }
 
     public void process(APDU apdu) {
