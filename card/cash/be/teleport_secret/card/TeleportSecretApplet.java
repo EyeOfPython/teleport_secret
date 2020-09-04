@@ -4,6 +4,7 @@ import javacard.framework.*;
 
 public class TeleportSecretApplet extends Applet {
     public static final byte INS_SAY_HELLO = 1;
+    // everything that we allocate with `new` will be in NVM (EEPROM)
     private static byte[] HELLO_MSG = new byte[]{72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 32, 33};
     private final byte[] mem;
     private final byte[] response;
@@ -11,6 +12,7 @@ public class TeleportSecretApplet extends Applet {
     private static final short LENGTH_RESPONSE = 256;
 
     protected TeleportSecretApplet(byte[] bArray, short bOffset, byte bLength) {
+        // everything allocated with `makeTransientByteArray` will be in RAM
         this.mem = JCSystem.makeTransientByteArray(LENGTH_MEM, JCSystem.CLEAR_ON_DESELECT);
         this.response = JCSystem.makeTransientByteArray(LENGTH_RESPONSE, JCSystem.CLEAR_ON_DESELECT);
         this.register();
@@ -39,6 +41,7 @@ public class TeleportSecretApplet extends Applet {
     private static void sendResponse(APDU apdu, byte[] array, short offset, short length) {
         apdu.setOutgoing();
         apdu.setOutgoingLength(length);
+        // we use (array, offset, length) pattern all over the place to emulate slices
         apdu.sendBytesLong(array, offset, length);
     }
 }
