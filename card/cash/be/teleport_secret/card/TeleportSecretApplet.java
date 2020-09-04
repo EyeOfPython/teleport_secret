@@ -1,6 +1,9 @@
 package cash.be.teleport_secret.card;
 
 import javacard.framework.*;
+import javacard.security.AESKey;
+import javacard.security.KeyBuilder;
+import javacardx.crypto.Cipher;
 
 public class TeleportSecretApplet extends Applet {
     public static final byte INS_SAY_HELLO = 0x01;
@@ -9,6 +12,9 @@ public class TeleportSecretApplet extends Applet {
 
     private BitcoinKey coinSk = new BitcoinKey();
     private BitcoinKey internalSk = new BitcoinKey();
+
+    private AESKey encryptKey;
+    private Cipher cipherAES;
 
     // everything that we allocate with `new` will be in NVM (EEPROM)
     private static byte[] HELLO_MSG = new byte[]{72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 32, 33};
@@ -24,6 +30,9 @@ public class TeleportSecretApplet extends Applet {
         this.coinSk.generate(this.mem);
         this.internalSk.generate(this.mem);
         this.internalSk.initKeyAgreement();
+
+        this.encryptKey = (AESKey) KeyBuilder.buildKey(KeyBuilder.ALG_TYPE_AES, KeyBuilder.LENGTH_AES_128, false);
+        this.cipherAES = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_CBC_NOPAD, false);
     }
 
     public static void install(byte[] bArray, short bOffset, byte bLength) throws ISOException {
@@ -46,13 +55,20 @@ public class TeleportSecretApplet extends Applet {
                     return;
                 }
                 case INS_MOVE_SECRET: {
-                    short len = this.internalSk.shareSecret(
+                    this.internalSk.shareSecret(
                             buffer,
                             ISO7816.OFFSET_CDATA,
                             BitcoinKey.PK_UNCOMPRESSED_SIZE,
-                            this.response,
+                            this.mem,
                             (short) 0
                     );
+                    this.encryptKey.setKey(this.mem, (short) 0);
+                    this.cipherAES.init(this.encryptKey, Cipher.MODE_ENCRYPT);
+                    this.coinSk.getPrivateKey(this.mem, (short) 32);
+                    short len = this.cipherAES.doFinal(this.mem, (short) 32, BitcoinKey.SK_SIZE, this.response, (short) 0);
+                    this.coinSk.reset(this.mem);
+                    this.internalSk.reset(this.mem);
+                    Util.arrayFillNonAtomic(this.mem, (short) 0, LENGTH_MEM, (byte) 0);
                     sendResponse(apdu, this.response, (short) 0, len);
                     return;
                 }

@@ -21,10 +21,10 @@ public class SecretTeleporter {
 
     public void moveSecretFromCard(Card customerCard) throws ISO7816Exception {
         customerCard.selectApplet(Nfc.AID);
-        byte[] sharedSecret = customerCard.transmit(
+        byte[] encryptedCoinSk = customerCard.transmit(
                 new CommandAPDU(0x00, TeleportSecretApplet.INS_MOVE_SECRET, 0x00, 0x00, merchantPk)
         ).getData();
-        System.out.println("Shared Secret: " + Utils.bytesToHex(sharedSecret));
+        System.out.println("Encrypted coinPk: " + Utils.bytesToHex(encryptedCoinSk));
     }
 
     public void redeemSecret(Card merchantCard) throws ISO7816Exception {
