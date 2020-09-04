@@ -7,13 +7,15 @@ import cash.be.teleport_secret.SecretTeleporter;
 
 public class TeleportSecretSimulator {
     public static void main(String[] args) {
-        Card card1 = Nfc.makeSimulatedCard();
-        Card card2 = Nfc.makeSimulatedCard();
+        Card merchantCard = Nfc.makeSimulatedCard();
+        Card customerCard = Nfc.makeSimulatedCard();
 
         SecretTeleporter teleporter = new SecretTeleporter();
 
         try {
-            teleporter.teleport(card1, card2);
+            teleporter.registerMerchantCard(merchantCard);
+            teleporter.moveSecretFromCard(customerCard);
+            teleporter.redeemSecret(merchantCard);
         } catch (ISO7816Exception e) {
             e.printStackTrace();
         }
